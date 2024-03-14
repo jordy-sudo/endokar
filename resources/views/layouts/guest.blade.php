@@ -13,6 +13,7 @@
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
         <!-- tailwind -->
         @vite('resources/css/app.css')
+       
 
     </head>
     <body>
@@ -20,7 +21,6 @@
         <div class="content">
             @yield('content')
         </div>
-        
     </body>
 
 </html>

@@ -8,6 +8,7 @@ use App\Models\Ciudad;
 use App\Models\CategoriaIndustrial;
 use App\Models\SubcategoriaIndustrial;
 use App\Models\ElementoIndustrial;
+use App\Models\Bank;
 
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
@@ -48,12 +49,18 @@ class RegisterProviderController extends Controller
                 'nombre_comercial' => 'required|string|max:60', 
             ]);
 
+            $approvedFields = $request->only([
+                'ruc', 'telefono', 'provincia', 'direccion', 'sitio_web', 'industria', 'observaciones',
+                'razon_social', 'celular', 'ciudad', 'geolocalizacion', 'email_retenciones', 'nombre_comercial'
+            ]);
+            session(['approvedFieldsStep1' => $approvedFields]);
 
+        
             return  view('guest.registerProviderStep2');
         } catch (ValidationException $e) {
             // Si hay errores de validación, redirige de nuevo a la página anterior con los errores
-            $exceptRuc = $request->except(['ruc']);
-            dd($exceptRuc);
+            // $exceptRuc = $request->except(['ruc']);
+            // dd($exceptRuc);
             return redirect()->back()->withErrors($e->errors())->withInput();
         }
     }
@@ -63,11 +70,114 @@ class RegisterProviderController extends Controller
         return view('guest.registerProviderStep2');
     }
 
+    public function processStep2(Request $request)
+    {
+        
+        try {
+            $request->validate([
+                'vendedor' => 'required|string|max:60', 
+                'vendedor_reemplazo' => 'nullable|string|max:60', 
+                'email_ventas' => 'required|email',
+                'horario_atencion' => 'required|string|max:30',
+                'telefono_vendedor' => [
+                    'required',
+                    'numeric',
+                    'digits:9',
+                ], 
+                'extension' => 'nullable|string|max:10',
+                'celular' => [
+                    'required',
+                    'regex:/^09\d{8}$/',
+                    'numeric',
+                    'digits:10',
+                ], 
+            ], [
+                'vendedor.required' => 'El campo vendedor es obligatorio.',
+                'vendedor.string' => 'El campo vendedor debe ser una cadena de caracteres.',
+                'vendedor.max' => 'El campo vendedor no puede tener más de :max caracteres.',
+                'vendedor_reemplazo.max' => 'El campo vendedor reemplazo no puede tener más de :max caracteres.',
+                'email_ventas.required' => 'El campo email ventas es obligatorio.',
+                'email_ventas.email' => 'El campo email ventas debe ser una dirección de correo electrónico válida.',
+                'horario_atencion.required' => 'El campo horario de atención es obligatorio.',
+                'horario_atencion.string' => 'El campo horario de atención debe ser una cadena de caracteres.',
+                'horario_atencion.max' => 'El campo horario de atención no puede tener más de :max caracteres.',
+                'telefono_vendedor.required' => 'El campo teléfono vendedor es obligatorio.',
+                'telefono_vendedor.numeric' => 'El campo teléfono vendedor debe ser numérico.',
+                'telefono_vendedor.digits' => 'El campo teléfono vendedor debe tener exactamente :digits dígitos.',
+                'extension.max' => 'El campo extensión no puede tener más de :max caracteres.',
+                'celular.required' => 'El campo celular es obligatorio.',
+                'celular.regex' => 'El formato del campo celular no es válido.',
+                'celular.numeric' => 'El campo celular debe ser numérico.',
+                'celular.digits' => 'El campo celular debe tener exactamente :digits dígitos.',
+            ]);
+
+            $approvedFields = $request->only([
+                'vendedor',
+                'vendedor_reemplazo',
+                'email_ventas',
+                'horario_atencion',
+                'telefono_vendedor',
+                'extension',
+                'celular',
+            ]);
+
+            session(['approvedFieldsStep2' => $approvedFields]);
+
+            return  view('guest.registerProviderStep3');
+        } catch (ValidationException $e) {
+            // Si hay errores de validación, redirige de nuevo a la página anterior con los errores
+            // $exceptRuc = $request->except(['ruc']);
+            // dd($exceptRuc);
+            return redirect()->back()->withErrors($e->errors())->withInput();
+        }
+    }
+
 
     public function indexStep3()
     {
-        return view('guest.registerProviderStep3');
+        $bancos = Bank::all();
+        return view('guest.registerProviderStep3', compact('bancos'));
     }
+
+    public function processStep3(Request $request)
+    {
+        
+        try {
+            $request->validate([
+                'banco' => 'required|string|max:15', 
+                'tipo_cuenta' => 'required|string|max:2', 
+                'numero_cuenta_bancaria' => 'required|string|max:18',
+                'certificado_bancario' => 'nullable|file|mimes:pdf,png,jpg,jpeg|max:10240', // 10 MB máximo
+            ], [
+                'banco.required' => 'El campo Banco es obligatorio.',
+                'banco.string' => 'El campo Banco debe ser una cadena de caracteres.',
+                'banco.max' => 'El campo Banco no puede tener más de :max caracteres.',
+                'tipo_cuenta.required' => 'El campo Tipo es obligatorio.',
+                'tipo_cuenta.string' => 'El campo Tipo debe ser una cadena de caracteres.',
+                'tipo_cuenta.max' => 'El campo Tipo no puede tener más de :max caracteres.',
+                'numero_cuenta_bancaria.required' => 'El campo No. Cta. Bancaria es obligatorio.',
+                'numero_cuenta_bancaria.string' => 'El campo No. Cta. Bancaria debe ser una cadena de caracteres.',
+                'numero_cuenta_bancaria.max' => 'El campo No. Cta. Bancaria no puede tener más de :max caracteres.',
+                'certificado_bancario.file' => 'El campo Certificado Bancario debe ser un archivo.',
+                'certificado_bancario.mimes' => 'El campo Certificado Bancario debe ser de tipo: pdf, png, jpg o jpeg.',
+                'certificado_bancario.max' => 'El tamaño máximo permitido para el Certificado Bancario es de :max kilobytes.',
+            ]);
+
+            $approvedFields = $request->only([
+            ]);
+
+            session(['approvedFieldsStep3' => $approvedFields]);
+
+            return  view('guest.registerProviderStep3');
+        } catch (ValidationException $e) {
+            // Si hay errores de validación, redirige de nuevo a la página anterior con los errores
+            // $exceptRuc = $request->except(['ruc']);
+            // dd($exceptRuc);
+            return redirect()->back()->withErrors($e->errors())->withInput();
+        }
+    }
+
+
 
     public function getCiudadesByProvincia($provinciaId)
     {

@@ -2,6 +2,7 @@
 
 @section('title', 'Registro de Proveedores')
 
+@vite('resources/js/providers.js')
 
 @section('content')
     <!-- component -->
@@ -12,15 +13,6 @@
         <div class="max-w-3xl w-full space-y-8 p-10 bg-white rounded-xl shadow-lg z-10">
             <h1 class="text-3xl font-semibold text-gray-800">Registro de Proveedor</h1>
             <h2 class="text-xl font-semibold text-gray-600">Datos Personales</h2>
-            @if ($errors->any())
-                <div class="alert alert-danger">
-                    <ul>
-                        @foreach ($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
-                </div>
-            @endif
             <form method="post" action="{{ route('RegisterProviderController.step1') }}" enctype="multipart/form-data">
                 @csrf
                 <div class="grid md:grid-cols-2 gap-8">
@@ -177,19 +169,18 @@
                     </div>
 
                     <div class="md:col-span-2 md:space-y-2 mt-0">
-                        <label class="text-xs font-semibold text-gray-600 py-2">Industria <abbr class=""
-                                title="requerido">*</abbr></label>
-                        <input type="text" id="buscador" placeholder="Buscar industria"
-                            class="appearance-none block w-full bg-grey-lighter text-grey-darker border border-grey-lighter rounded-lg h-10 px-4 mb-2">
-
-                        <select name="industria" id="industria"
-                            class="appearance-none block w-full bg-grey-lighter text-grey-darker border border-grey-lighter rounded-lg h-12 px-4">
+                        <label class="text-xs font-semibold text-gray-600 py-2">Industria <abbr class="" title="requerido">*</abbr></label>
+                        <input type="text" id="buscador" placeholder="Buscar industria" class="appearance-none block w-full bg-grey-lighter text-grey-darker border border-grey-lighter rounded-lg h-10 px-4 mb-2">
+                    
+                        <select name="industria" id="industria" class="appearance-none block w-full bg-grey-lighter text-grey-darker border border-grey-lighter rounded-lg h-12 px-4">
                             <option value="">Selecciona una opción</option>
                             @foreach ($categorias as $categoria)
                                 @foreach ($categoria->subcategorias as $subcategoria)
                                     <optgroup label="{{ $categoria->nombre }} / {{ $subcategoria->nombre }}">
                                         @foreach ($subcategoria->elementos as $elemento)
-                                            <option value="{{ $elemento->id }}">{{ $elemento->nombre }}</option>
+                                            <option value="{{ $elemento->id }}" {{ old('industria') == $elemento->id ? 'selected' : '' }}>
+                                                {{ $elemento->nombre }}
+                                            </option>
                                         @endforeach
                                     </optgroup>
                                 @endforeach
@@ -210,95 +201,52 @@
             </form>
         </div>
     </div>
-    <script>
-        $(document).ready(function() {
-            // Función para cargar las ciudades automáticamente cuando se selecciona una provincia
-            function cargarCiudades(provinciaId) {
-                // Obtener el token CSRF
-                var token = $('meta[name="csrf-token"]').attr('content');
-                // Realizar la solicitud AJAX
-                $.ajax({
-                    url: '/ciudades/' + provinciaId,
-                    type: 'GET',
-                    headers: {
-                        'X-CSRF-TOKEN': token
-                    },
-                    success: function(response) {
-                        // Limpiar el select de ciudades
-                        $('#ciudad').empty();
-                        // Agregar las nuevas opciones de ciudades
-                        $.each(response, function(key, value) {
-                            $('#ciudad').append('<option value="' + key + '">' +
-                                value + '</option>');
-                        });
-                    },
-                    error: function(xhr, status, error) {
-                        console.error(error); // Manejar errores si los hay
-                    }
-                });
-            }
-
-            // Cargar automáticamente las ciudades si existe un valor anterior de provincia
-            var provinciaAnterior = "{{ old('provincia') }}";
-            if (provinciaAnterior) {
-                cargarCiudades(provinciaAnterior);
-            }
-
-            // Detectar cambios en el campo de provincia y cargar las ciudades correspondientes
-            $('#provincia').change(function() {
-                var provinciaId = $(this).val();
-                if (provinciaId) {
-                    cargarCiudades(provinciaId);
-                } else {
-                    // Limpiar el select de ciudades si no se selecciona ninguna provincia
-                    $('#ciudad').empty();
-                }
+<script>
+    function loadCities(provinceId, oldCity) {
+    var token = $('meta[name="csrf-token"]').attr('content');
+    $.ajax({
+        url: '/ciudades/' + provinceId,
+        type: 'GET',
+        headers: {
+            'X-CSRF-TOKEN': token
+        },
+        success: function (response) {
+            $('#ciudad').empty();
+            $.each(response, function (key, value) {
+                $('#ciudad').append('<option value="' + key + '">' +
+                    value + '</option>');
             });
-        });
 
-        function validarCampoInput(inputId, maxLength, allowNonNumeric) {
-            document.getElementById(inputId).addEventListener('input', function(event) {
-                let inputValue = event.target.value;
-
-                // Permitir caracteres no numéricos si se especifica
-                if (!allowNonNumeric) {
-                    // Reemplazar cualquier caracter que no sea un dígito con una cadena vacía
-                    inputValue = inputValue.replace(/\D/g, '');
-                }
-
-                // Limitar la longitud del valor al máximo especificado
-                inputValue = inputValue.slice(0, maxLength);
-
-                // Actualizar el valor del campo
-                event.target.value = inputValue;
-            });
+            // Asigna el valor de old ciudad si existe
+            if (oldCity) {
+                $('#ciudad').val(oldCity);
+            }
+        },
+        error: function (xhr, status, error) {
+            console.error(error);
         }
-        validarCampoInput('telefono', 10, false);
-        validarCampoInput('ruc', 13, false);
-        validarCampoInput('celular', 10, false);
+    });
+    }
 
-        //campos texto
-        validarCampoInput('direccion', 60, true);
-        validarCampoInput('sitio_web', 100, true);
-        validarCampoInput('observaciones', 100, true);
-        validarCampoInput('razon_social', 38, true);
-        validarCampoInput('geolocalizacion', 60, true);
-        validarCampoInput('email_retenciones', 241, true);
-        validarCampoInput('nombre_comercial', 60, true);
+    $(document).ready(function () {
+    var previousProvince = "{{ old('provincia') }}";
+    var oldCity = "{{ old('ciudad') }}";
 
-        document.addEventListener('DOMContentLoaded', function() {
-            const buscador = document.getElementById('buscador');
-            const select = document.getElementById('industria');
+    if (previousProvince) {
+        console.log('Entre a renovar la provicnia con valores', previousProvince, oldCity);
+        loadCities(previousProvince, oldCity);
+    }
 
-            buscador.addEventListener('input', function() {
-                const filtro = buscador.value.toLowerCase();
-                const opciones = select.querySelectorAll('optgroup');
+    $('#provincia').change(function () {
+        var provinceId = $(this).val();
+        if (provinceId) {
+            loadCities(provinceId, '');
+        } else {
+            $('#ciudad').empty();
+        }
+    });
 
-                opciones.forEach(function(optgroup) {
-                    const visible = optgroup.label.toLowerCase().includes(filtro);
-                    optgroup.style.display = visible ? 'block' : 'none';
-                });
-            });
-        });
-    </script>
+
+    });
+</script>
 @endsection
