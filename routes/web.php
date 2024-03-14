@@ -27,3 +27,5 @@ Route::post('/register-provider/step-2', [RegisterProviderController::class, 'pr
 
 Route::get('/register-provider/step-3', [RegisterProviderController::class, 'indexStep3'])->name('RegisterProviderController.step3');
 Route::post('/register-provider/step-3', [RegisterProviderController::class, 'processStep3']);
+
+Route::get('/ciudades/{provincia_id}', [RegisterProviderController::class, 'getCiudadesByProvincia'])->name('getCiudades');

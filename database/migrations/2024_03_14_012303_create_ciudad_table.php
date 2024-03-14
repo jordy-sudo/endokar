@@ -11,10 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('categoria_industrials', function (Blueprint $table) {
+        Schema::create('ciudad_table', function (Blueprint $table) {
             $table->id();
             $table->string('nombre');
-            $table->timestamps();
+            $table->unsignedBigInteger('provincia_id'); 
+            $table->foreign('provincia_id')->references('id')->on('provincia_table')->onDelete('cascade');
+            $table->timestamps(); 
         });
     }
 
@@ -23,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('categoria_industrials');
+        Schema::dropIfExists('ciudad_table');
     }
 };

@@ -13,6 +13,6 @@ class CategoriaIndustrial extends Model
 
     public function subcategorias()
     {
-        return $this->hasMany(SubcategoriaIndustrial::class);
+        return $this->hasMany(SubcategoriaIndustrial::class, 'categoria_id');
     }
 }

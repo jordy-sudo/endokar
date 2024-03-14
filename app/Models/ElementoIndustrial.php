@@ -9,10 +9,10 @@ class ElementoIndustrial extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['nombre'];
+    protected $fillable = ['nombre', 'subcategoria_id'];
 
     public function subcategoria()
     {
-        return $this->belongsTo(SubcategoriaIndustrial::class);
+        return $this->belongsTo(SubcategoriaIndustrial::class, 'subcategoria_id');
     }
 }

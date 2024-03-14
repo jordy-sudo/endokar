@@ -11,9 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('categoria_industrials', function (Blueprint $table) {
+        Schema::create('provincia_table', function (Blueprint $table) {
             $table->id();
-            $table->string('nombre');
+            $table->string('nombre'); 
+            // $table->string('codigo'); // Agrega el campo 'codigo' para el código de la provincia
             $table->timestamps();
         });
     }
@@ -23,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('categoria_industrials');
+        Schema::dropIfExists('provincia_table');
     }
 };

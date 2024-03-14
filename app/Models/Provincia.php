@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class Provincia extends Model
 {
+    protected $table = 'provincia_table';
+
     protected $fillable = ['nombre'];
 
     // Relación uno a muchos con Ciudades

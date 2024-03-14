@@ -4,13 +4,19 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use App\Models\CategoriaIndustrial;
+use App\Models\SubcategoriaIndustrial;
+use App\Models\ElementoIndustrial;
 
+/**
+ * Seed para la tabla categorias_industriales, subcategorias_industriales y elementos_industriales.
+ */
 class IndustrialSeeder extends Seeder
 {
     /**
      * Run the database seeds.
      */
-    public function run()
+    public function run() : void
     {
         // Cargar categorías
         $categorias = [
@@ -35,13 +41,23 @@ class IndustrialSeeder extends Seeder
         ];
 
         foreach ($categorias as $nombreCategoria => $subcategorias) {
+            // Crear la categoría
             $categoria = CategoriaIndustrial::create(['nombre' => $nombreCategoria]);
 
+            // Iterar sobre las subcategorías y elementos
             foreach ($subcategorias as $nombreSubcategoria => $elementos) {
-                $subcategoria = $categoria->subcategorias()->create(['nombre' => $nombreSubcategoria]);
+                // Crear la subcategoría asociada a la categoría
+                $subcategoria = SubcategoriaIndustrial::create([
+                    'nombre' => $nombreSubcategoria,
+                    'categoria_id' => $categoria->id, // Asignar la categoría a la subcategoría
+                ]);
 
+                // Iterar sobre los elementos y crearlos en la subcategoría
                 foreach ($elementos as $nombreElemento) {
-                    $subcategoria->elementos()->create(['nombre' => $nombreElemento]);
+                    ElementoIndustrial::create([
+                        'nombre' => $nombreElemento,
+                        'subcategoria_id' => $subcategoria->id, // Asignar la subcategoría al elemento
+                    ]);
                 }
             }
         }

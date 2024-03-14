@@ -9,15 +9,15 @@ class SubcategoriaIndustrial extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['nombre'];
+    protected $fillable = ['nombre', 'categoria_id'];
 
     public function categoria()
     {
-        return $this->belongsTo(CategoriaIndustrial::class);
+        return $this->belongsTo(CategoriaIndustrial::class, 'categoria_id');
     }
 
     public function elementos()
     {
-        return $this->hasMany(ElementoIndustrial::class);
+        return $this->hasMany(ElementoIndustrial::class, 'subcategoria_id');
     }
 }

@@ -13,6 +13,8 @@ return new class extends Migration
     {
         Schema::create('elemento_industrials', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('subcategoria_id')->constrained('subcategoria_industrials')->onDelete('cascade'); 
+            $table->string('nombre');
             $table->timestamps();
         });
     }
