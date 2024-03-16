@@ -9,10 +9,16 @@ use App\Models\CategoriaIndustrial;
 use App\Models\SubcategoriaIndustrial;
 use App\Models\ElementoIndustrial;
 use App\Models\Bank;
+use App\Models\Provider;
+use App\Models\ProviderLaboral;
+use App\Models\ProviderBankRecord;
 
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Session;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
+use RealRashid\SweetAlert\Facades\Alert;
 
 
 class RegisterProviderController extends Controller
@@ -47,22 +53,39 @@ class RegisterProviderController extends Controller
                 'geolocalizacion' => 'required|string|max:60', 
                 'email_retenciones' => 'required|email|max:241', 
                 'nombre_comercial' => 'required|string|max:60', 
+                'certificado_ruc' => 'required|file|mimes:pdf,png,jpg,jpeg|max:10240'
             ]);
+
+            if ($request->hasFile('certificado_ruc')) {
+                $rutaCertificado = $this->storeFile($request->file('certificado_ruc'), 'certificados/ruc');
+            }
 
             $approvedFields = $request->only([
                 'ruc', 'telefono', 'provincia', 'direccion', 'sitio_web', 'industria', 'observaciones',
                 'razon_social', 'celular', 'ciudad', 'geolocalizacion', 'email_retenciones', 'nombre_comercial'
             ]);
+            $approvedFields['certificado_ruc'] = $rutaCertificado;
+
             session(['approvedFieldsStep1' => $approvedFields]);
 
-        
-            return  view('guest.registerProviderStep2');
+            
+            return redirect()->route('index.step2');
         } catch (ValidationException $e) {
             // Si hay errores de validación, redirige de nuevo a la página anterior con los errores
             // $exceptRuc = $request->except(['ruc']);
             // dd($exceptRuc);
             return redirect()->back()->withErrors($e->errors())->withInput();
         }
+    }
+
+    public function backStep1()
+    {
+        $step1Data = session('approvedFieldsStep1');
+        if (isset($step1Data['certificado_ruc'])) {
+            $filePath = str_replace('/storage', 'public', $step1Data['certificado_ruc']);
+            Storage::delete($filePath);
+        }
+        return redirect()->route('index.step1')->with('step1Data', $step1Data);
     }
 
     public function indexStep2()
@@ -72,7 +95,6 @@ class RegisterProviderController extends Controller
 
     public function processStep2(Request $request)
     {
-        
         try {
             $request->validate([
                 'vendedor' => 'required|string|max:60', 
@@ -91,6 +113,7 @@ class RegisterProviderController extends Controller
                     'numeric',
                     'digits:10',
                 ], 
+                'servicio_entrega'=>'required|string|max:60',
             ], [
                 'vendedor.required' => 'El campo vendedor es obligatorio.',
                 'vendedor.string' => 'El campo vendedor debe ser una cadena de caracteres.',
@@ -119,11 +142,12 @@ class RegisterProviderController extends Controller
                 'telefono_vendedor',
                 'extension',
                 'celular',
+                'servicio_entrega'
             ]);
 
             session(['approvedFieldsStep2' => $approvedFields]);
-
-            return  view('guest.registerProviderStep3');
+            
+            return redirect()->route('index.step3');
         } catch (ValidationException $e) {
             // Si hay errores de validación, redirige de nuevo a la página anterior con los errores
             // $exceptRuc = $request->except(['ruc']);
@@ -131,6 +155,13 @@ class RegisterProviderController extends Controller
             return redirect()->back()->withErrors($e->errors())->withInput();
         }
     }
+
+    public function backStep2()
+    {
+        $step2Data = session('approvedFieldsStep2');
+        return redirect()->route('index.step2')->with('step2Data', $step2Data);
+    }
+
 
 
     public function indexStep3()
@@ -145,9 +176,9 @@ class RegisterProviderController extends Controller
         try {
             $request->validate([
                 'banco' => 'required|string|max:15', 
-                'tipo_cuenta' => 'required|string|max:2', 
+                'tipo_cuenta' => 'required|string|max:10', 
                 'numero_cuenta_bancaria' => 'required|string|max:18',
-                'certificado_bancario' => 'nullable|file|mimes:pdf,png,jpg,jpeg|max:10240', // 10 MB máximo
+                'certificado_bancario' => 'required|file|mimes:pdf,png,jpg,jpeg|max:10240', // 10 MB máximo
             ], [
                 'banco.required' => 'El campo Banco es obligatorio.',
                 'banco.string' => 'El campo Banco debe ser una cadena de caracteres.',
@@ -164,11 +195,29 @@ class RegisterProviderController extends Controller
             ]);
 
             $approvedFields = $request->only([
+                'banco', 'tipo_cuenta', 'numero_cuenta_bancaria',
             ]);
 
-            session(['approvedFieldsStep3' => $approvedFields]);
+             // Obtener los datos de la sesión
+            $approvedFieldsStep1 = session('approvedFieldsStep1');
+            $approvedFieldsStep2 = session('approvedFieldsStep2');
 
-            return  view('guest.registerProviderStep3');
+            
+            if ($this->saveInformationProvider($approvedFieldsStep1, $approvedFieldsStep2, $request->all())) {
+                // Redirigir a la página de éxito
+                $registerProvider = array_merge(
+                    session('approvedFieldsStep1'),
+                    session('approvedFieldsStep2'),
+                    $approvedFields 
+                );
+                Alert::success('¡Listo!', 'Se ha registrado el proveedor exitosamente. ¡Gracias por su registro!');
+                return redirect()->route('index.step1')->with([
+                    'registerProvider' => $registerProvider
+                ]);
+            } else {
+                Alert::error('¡Oops!', 'Hubo un error al registrar el proveedor. Por favor, inténtalo de nuevo más tarde.');
+                return redirect()->route('index.step1');
+            }
         } catch (ValidationException $e) {
             // Si hay errores de validación, redirige de nuevo a la página anterior con los errores
             // $exceptRuc = $request->except(['ruc']);
@@ -179,7 +228,7 @@ class RegisterProviderController extends Controller
 
 
 
-    public function getCiudadesByProvincia($provinciaId)
+    protected function getCiudadesByProvincia($provinciaId)
     {
         // Obtener las ciudades asociadas a la provincia
         $ciudades = Ciudad::where('provincia_id', $provinciaId)->pluck('nombre', 'id');
@@ -187,7 +236,7 @@ class RegisterProviderController extends Controller
         return response()->json($ciudades);
     }
 
-    private function validationCI($cedula) {
+    protected function validationCI($cedula) {
         $cedula = substr($cedula, 0, 10);
         $cedula = preg_replace("/[^0-9]/", "", $cedula);
     
@@ -213,4 +262,47 @@ class RegisterProviderController extends Controller
     
         return $digitoEsperado == $digitoVerificador;
     }
+
+    protected function storeFile($archivo, $nombreDirectorio)
+    {
+        $nombreArchivo = uniqid() . '_' . $archivo->getClientOriginalName();
+        
+        $rutaArchivo = $archivo->storeAs($nombreDirectorio, $nombreArchivo, 'public');
+        
+        return '/storage/' . $rutaArchivo;
+    }
+
+    protected function saveInformationProvider($approvedFieldsStep1, $approvedFieldsStep2, $approvedFieldsStep3)
+    {
+        try {
+            // Crear y guardar el proveedor en la tabla "providers"
+            $provider = new Provider();
+            $provider->fill($approvedFieldsStep1);
+            $provider->save();
+
+            // Crear y guardar los datos laborales del proveedor en la tabla "provider_laborals"
+            $providerLaboral = new ProviderLaboral();
+            $providerLaboral->fill($approvedFieldsStep2);
+            $providerLaboral->provider_id = $provider->id; // Asociar con el proveedor recién creado
+            $providerLaboral->save();
+
+            // Crear y guardar los registros bancarios en la tabla "provider_bank_records"
+            $providerBankRecord = new ProviderBankRecord();
+            $providerBankRecord->fill($approvedFieldsStep3);
+            $providerBankRecord->provider_id = $provider->id; // Asociar con el proveedor recién creado
+            $providerBankRecord->bank_id = $approvedFieldsStep3['banco']; // Asociar con el banco elegido
+            // Guardar el archivo certificado bancario
+            if (isset($approvedFieldsStep3['certificado_bancario'])) {
+                $rutaCertificado = $this->storeFile($approvedFieldsStep3['certificado_bancario'], 'certificados');
+                $providerBankRecord->certificado_bancario = $rutaCertificado;
+            }
+            $providerBankRecord->save();
+
+            return true;
+        } catch (\Exception $e) {
+            dd($e);
+            return false; 
+        }
+    }
+
 }

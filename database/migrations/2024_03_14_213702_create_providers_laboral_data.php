@@ -21,6 +21,7 @@ return new class extends Migration
             $table->string('telefono_vendedor')->nullable();
             $table->string('extension')->nullable();
             $table->string('celular')->nullable();
+            $table->string('servicio_entrega')->nullable();
             $table->timestamps();
         });
     }

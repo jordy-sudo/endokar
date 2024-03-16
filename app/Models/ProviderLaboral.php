@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class ProviderLaboral extends Model
 {
+    protected $table = 'provider_laboral_data';
     protected $fillable = [
         'vendedor',
         'vendedor_reemplazo',
@@ -15,6 +16,7 @@ class ProviderLaboral extends Model
         'telefono_vendedor',
         'extension',
         'celular',
+        'servicio_entrega'
     ];
 
     // Relación con el proveedor

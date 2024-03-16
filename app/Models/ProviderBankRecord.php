@@ -7,9 +7,11 @@ use Illuminate\Database\Eloquent\Model;
 
 class ProviderBankRecord extends Model
 {
+    protected $table = 'provider_bank_records';
+
     protected $fillable = [
         'provider_id',
-        'banco',
+        'banco_id',
         'tipo_cuenta',
         'numero_cuenta_bancaria',
         'certificado_bancario',
