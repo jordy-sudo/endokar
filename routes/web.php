@@ -14,10 +14,6 @@ use App\Http\Controllers\Register\RegisterProviderController;
 |
 */
 
-Route::get('/', function () {
-    return view('app.main.enkador');
-});
-
 
 Route::get('/register-provider', [RegisterProviderController::class, 'index'])->name('index.step1');
 Route::post('/register-provider', [RegisterProviderController::class, 'processStep1'])->name('RegisterProviderController.step1');
@@ -30,4 +26,9 @@ Route::get('/register-provider/back-step-2', [RegisterProviderController::class,
 Route::get('/register-provider/step-3', [RegisterProviderController::class, 'indexStep3'])->name('index.step3');
 Route::post('/register-provider/step-3', [RegisterProviderController::class, 'processStep3'])->name('RegisterProviderController.step3');
 
+
 Route::get('/ciudades/{provincia_id}', [RegisterProviderController::class, 'getCiudadesByProvincia'])->name('getCiudades');
+
+// App Routes
+Auth::routes();
+Route::get('/', [App\Http\Controllers\HomeController::class, 'index'])->name('home');

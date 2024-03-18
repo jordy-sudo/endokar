@@ -198,6 +198,7 @@ class RegisterProviderController extends Controller
                 'banco', 'tipo_cuenta', 'numero_cuenta_bancaria',
             ]);
 
+            session(['approvedFieldsStep2' => $approvedFields]);
              // Obtener los datos de la sesión
             $approvedFieldsStep1 = session('approvedFieldsStep1');
             $approvedFieldsStep2 = session('approvedFieldsStep2');
@@ -278,6 +279,7 @@ class RegisterProviderController extends Controller
             // Crear y guardar el proveedor en la tabla "providers"
             $provider = new Provider();
             $provider->fill($approvedFieldsStep1);
+            $provider->check_politica_tratamiento_datos = true;
             $provider->save();
 
             // Crear y guardar los datos laborales del proveedor en la tabla "provider_laborals"
@@ -291,6 +293,7 @@ class RegisterProviderController extends Controller
             $providerBankRecord->fill($approvedFieldsStep3);
             $providerBankRecord->provider_id = $provider->id; // Asociar con el proveedor recién creado
             $providerBankRecord->bank_id = $approvedFieldsStep3['banco']; // Asociar con el banco elegido
+            // Si se cargó un archivo certificado bancario, guardarlo en la tabla "provider_bank_records"
             // Guardar el archivo certificado bancario
             if (isset($approvedFieldsStep3['certificado_bancario'])) {
                 $rutaCertificado = $this->storeFile($approvedFieldsStep3['certificado_bancario'], 'certificados');
@@ -300,7 +303,8 @@ class RegisterProviderController extends Controller
 
             return true;
         } catch (\Exception $e) {
-            dd($e);
+            Alert::error('¡Oops!', 'Hubo un error al registrar el proveedor. Por favor, inténtalo de nuevo más tarde.');
+            return redirect()->route('index.step1');
             return false; 
         }
     }

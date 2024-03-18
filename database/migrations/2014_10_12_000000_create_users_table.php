@@ -18,6 +18,8 @@ return new class extends Migration
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->rememberToken();
+            $table->integer('login_attempts')->default(0); // Nuevo campo para los intentos de inicio de sesión
+            $table->timestamp('locked_at')->nullable();
             $table->timestamps();
         });
     }

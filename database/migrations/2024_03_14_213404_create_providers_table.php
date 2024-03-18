@@ -27,6 +27,7 @@ return new class extends Migration
             $table->string('geolocalizacion', 60)->nullable(false);
             $table->string('email_retenciones', 241)->nullable(false);
             $table->string('nombre_comercial', 60)->nullable(false);
+            $table->boolean('check_politica_tratamiento_datos')->default(false);
             $table->timestamps();
         });
     }

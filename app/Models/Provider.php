@@ -21,6 +21,7 @@ class Provider extends Model
         'geolocalizacion',
         'email_retenciones',
         'nombre_comercial',
-        'certificado_ruc'
+        'certificado_ruc',
+        'check_politica_tratamiento_datos'
     ];
 }

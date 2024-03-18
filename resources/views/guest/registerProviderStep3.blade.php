@@ -100,10 +100,43 @@
                     <button type="button" onclick="backStep2()"
                         class="mb-2 md:mb-0 bg-white px-5 py-2 text-sm shadow-sm font-medium tracking-wider border text-gray-600 rounded-full hover:shadow-lg hover:bg-gray-100">
                         Atras </button>
-                    <button
+                    <button <button type="button" id="myBtn"
                         class="mb-2 md:mb-0 bg-green-400 px-5 py-2 text-sm shadow-sm font-medium tracking-wider text-white rounded-full hover:shadow-lg hover:bg-green-500">Guardar</button>
                 </div>
             </form>
+        </div>
+    </div>
+    <!-- Modal -->
+    <div id="myModal"
+        class="fixed left-0 top-0 flex z-50 h-full w-full items-center justify-center bg-black bg-opacity-50 py-10 hidden">
+        <div class="max-h-full w-full max-w-xl overflow-y-auto sm:rounded-2xl bg-white">
+            <div class="w-full">
+                <div class="m-8 my-20 max-w-[400px] mx-auto">
+                    <div class="mb-8">
+                        <h1 class="mb-4 text-3xl font-extrabold">Política de Protección de Datos Personales</h1>
+                        <p class="text-gray-600">Al dar click en el botón de "Aceptar", usted acepta que ENKADOR recolecte y
+                            almacene sus datos personales, como IP y otros identificadores digitales, con el objetivo de
+                            permitir una idónea navegación en esta página web/app, y para que ENKADOR pueda formar bases de
+                            datos de clientes con fines comerciales, en función de su Política que se encuentra en el
+                            siguiente enlace. <a href="https://www.enkador.com/terms-and-conditions"
+                                class="text-blue-600 underline" target="_blank">Terminos y condiciones</a></p>
+                        <p class="text-gray-600">Además, usted autoriza a ENKADOR a hacer un tratamiento de datos
+                            responsable y en cumplimiento de la Ley Orgánica de Protección de Datos Personales publicada en
+                            el Registro Oficial de 26 de mayo de 2021.</p>
+                    </div>
+                    <div class="space-y-4">
+                        <label class="flex items-center">
+                            <input type="checkbox"
+                                class="form-checkbox h-4 w-4 text-indigo-600 transition duration-150 ease-in-out">
+                            <span class="ml-2 text-gray-600">He leído y acepto los términos y condiciones</span>
+                        </label>
+                        <button id="acceptButton"
+                            class="p-3 bg-black rounded-full text-white w-full font-semibold">Aceptar</button>
+                        <button id="closeButton"
+                            class="p-3 bg-gray-400 rounded-full text-white w-full font-semibold">Cerrar</button>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
     <script>
@@ -130,5 +163,28 @@
         function backStep2() {
             window.location.href = "{{ route('RegisterProviderController.backStep2') }}";
         }
+
+        document.getElementById('myBtn').addEventListener('click', function() {
+            document.getElementById('myModal').classList.remove('hidden');
+        });
+
+        // Botón "Aceptar" dentro del modal
+        document.getElementById('acceptButton').addEventListener('click', function() {
+            // Verificar si el checkbox está marcado
+            if (document.querySelector('input[type="checkbox"]').checked) {
+                // Enviar el formulario
+                document.querySelector('form').submit();
+            } else {
+                alert('Por favor, acepta los términos y condiciones.');
+            }
+        });
+        document.addEventListener("DOMContentLoaded", function() {
+            const modal = document.getElementById("myModal");
+            const closeButton = document.getElementById("closeButton");
+
+            closeButton.addEventListener("click", function() {
+                modal.classList.add("hidden");
+            });
+        });
     </script>
 @endsection
